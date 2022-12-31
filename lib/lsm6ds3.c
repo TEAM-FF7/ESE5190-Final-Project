@@ -18,7 +18,7 @@ void LSM6DS3_init(PIO pio, uint sm) {
     pio_i2c_write_blocking(pio, sm, LSM6DS3_ADDRESS, command, 2, false);
 
     // set gyro sensor
-    command[0] = LSM6DS3_CTRL2_G;  //shutdown
+    command[0] = LSM6DS3_CTRL2_G; 
     command[1] = 0x4C;
     pio_i2c_write_blocking(pio, sm, LSM6DS3_ADDRESS, command, 2, false);
 
