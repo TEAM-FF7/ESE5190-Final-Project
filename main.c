@@ -107,6 +107,10 @@ void core1_entry() {
 	uint32_t control;
 
 	bool flag = false;
+
+	uint integtime = 3;
+	bool integflag = false;
+	float gyrosum[2] = {0,0};
 	
 	while (true) {
 		gpio_put(PIN_LED, !gpio_get(PIN_LED)); 
@@ -204,6 +208,29 @@ void core1_entry() {
 			flag = false;
 
 		// sensor control
+
+		// rapid change response
+		readGyro(pio, sm, data);
+		for (int i = 0; i < 2; i++){
+			if ((integflag == false) && (data[i] > 5) || (data[i] < -5)){
+				integflag = true;
+			}	
+		}
+		if (integflag){
+			for (int i = 0; i < 2; i++){
+				gyrosum[i] += data[i];
+			}
+			integtime -= 1;
+		}
+		if (integtime == 0){
+			integflag = false;
+			car_y = car_y + mov_speed + 0.2*gyrosum[1];
+			car_y = car_y_lim(car_y);
+			car_x = car_x + 0.2*gyrosum[0];
+			car_x = car_x_lim(car_x,car_w);
+		}
+			
+		//Fixed tilt response
 		readAcceleration(pio, sm, data);
         printf("x: %d, y: %d, z: %d.\n",data[0] ,data[1] ,data[2]);
 		if (data[1] > -1000) {
@@ -242,7 +269,6 @@ void core1_entry() {
 
 		if (mov_speed <= 7.5){
 			mov_speed += (rand() % 2) * 0.012;
-
 		}
 		
 
